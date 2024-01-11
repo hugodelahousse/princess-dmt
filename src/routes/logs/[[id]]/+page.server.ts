@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { superValidate } from 'sveltekit-superforms/server';
-import { type Action, error, fail, redirect, ServerLoad } from '@sveltejs/kit';
+import { type Action, error, fail, redirect, type ServerLoad } from '@sveltejs/kit';
 import { prisma } from '$lib/primsa';
 import type { InternLog } from '@prisma/client';
 import { DIVE_TYPES } from '$lib/diveType';
@@ -9,6 +9,7 @@ const diveType = z.enum(DIVE_TYPES);
 
 const logEntrySchema = z
 	.object({
+		id: z.number().optional(),
 		date: z.coerce.date().default(new Date()),
 		internId: z.number(),
 
@@ -36,6 +37,10 @@ const logEntrySchema = z
 		return data;
 	});
 
+const logEntryDeleteSchema = z.object({
+	id: z.number()
+});
+
 export type LogEntrySchema = typeof logEntrySchema;
 
 export const load = (async ({ params }) => {
@@ -54,14 +59,30 @@ export const load = (async ({ params }) => {
 }) satisfies ServerLoad;
 
 export const actions = {
-	default: async ({ request }) => {
+	save: async ({ request }) => {
 		const form = await superValidate(request, logEntrySchema);
 
 		if (!form.valid) {
 			return fail(400, { form });
 		}
 
-		await prisma.internLog.create({ data: form.data });
+		if (form.data.id) {
+			console.log(form.data);
+			await prisma.internLog.update({
+				where: { id: form.data.id },
+				data: form.data
+			});
+		} else {
+			await prisma.internLog.create({ data: form.data });
+		}
+
+		return redirect(307, '/');
+	},
+
+	delete: async ({ request }) => {
+		const form = await superValidate(request, logEntryDeleteSchema);
+
+		prisma.internLog.delete({ where: { id: form.data.id } });
 
 		return redirect(307, '/');
 	}

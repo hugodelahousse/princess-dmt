@@ -4,7 +4,7 @@
 </script>
 
 <div class="p-2">
-	<Button color="green" class="w-full" href="/log"
+	<Button color="green" class="w-full" href="/logs"
 		><PlusSolid class="w-3 h-3 me-2" />Add Entry</Button
 	>
 </div>

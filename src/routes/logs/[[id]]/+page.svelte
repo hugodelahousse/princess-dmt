@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Button, Checkbox, Helper, Input, Label, Select } from 'flowbite-svelte';
 	import { superForm, dateProxy } from 'sveltekit-superforms/client';
-	import type { PageData } from '../../../../.svelte-kit/types/src/routes';
+	import type { PageData } from './$types';
 	import { page } from '$app/stores';
-	import { DIVE_TYPES } from '$lib/diveType';
+	import { DIVE_TYPES, getDiveTypeLabel } from '$lib/diveType';
 
 	export let data: PageData;
 
@@ -17,7 +17,7 @@
 {#if $message}
 	<h3 class:invalid={$page.status >= 400}>{$message}</h3>
 {/if}
-<form method="POST" class="grid grid-cols-6 sm:grid-cols-6 gap-6" use:enhance>
+<form method="POST" action="?/save" class="grid grid-cols-6 sm:grid-cols-6 gap-6" use:enhance>
 	<input type="hidden" name="id" bind:value={$form.id} />
 
 	<div class="col-span-6">
@@ -42,14 +42,16 @@
 			<Label for="morningDiveType" class="block">Dive type</Label>
 			<Select
 				name="morningDiveType"
-				items={DIVE_TYPES.map((type) => ({ value: type, name: type.toUpperCase() }))}
+				items={DIVE_TYPES.map((type) => ({ value: type, name: getDiveTypeLabel(type) }))}
 				bind:value={$form.morningDiveType}
 			/>
 			{#if $errors.morningDiveType}<Helper class="mt-2" color="red"
 					>{$errors.morningDiveType}</Helper
 				>{/if}
 
-			<Checkbox name="morningDive" bind:checked={$form.morningDiveGuided}>Was dive guide</Checkbox>
+			<Checkbox name="morningDiveGuided" bind:checked={$form.morningDiveGuided}
+				>Was dive guide</Checkbox
+			>
 		{/if}
 	</div>
 
@@ -64,14 +66,14 @@
 			<Label for="afternoonDiveType" class="block">Dive type</Label>
 			<Select
 				name="afternoonDiveType"
-				items={DIVE_TYPES.map((type) => ({ value: type, name: type.toUpperCase() }))}
+				items={DIVE_TYPES.map((type) => ({ value: type, name: getDiveTypeLabel(type) }))}
 				bind:value={$form.afternoonDiveType}
 			/>
 			{#if $errors.afternoonDiveType}<Helper class="mt-2" color="red"
 					>{$errors.afternoonDiveType}</Helper
 				>{/if}
 
-			<Checkbox name="afternoonDive" bind:checked={$form.afternoonDiveGuided}
+			<Checkbox name="afternoonDiveGuided" bind:checked={$form.afternoonDiveGuided}
 				>Was dive guide</Checkbox
 			>
 		{/if}
@@ -89,4 +91,7 @@
 	</div>
 
 	<Button color="green" type="submit" class="col-span-6">Save</Button>
+	{#if $form.id}
+		<Button formaction="?/delete" color="red" type="submit" class="col-span-6">Delete</Button>
+	{/if}
 </form>
